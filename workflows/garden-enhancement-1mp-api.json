@@ -1,0 +1,155 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "krea2_turbo_nvfp4.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_4b_fp8_scaled.safetensors",
+      "type": "krea2",
+      "device": "cpu"
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    }
+  },
+  "4": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": ["1", 0],
+      "lora_name": "krea2_identity_edit_v1_2_r64.safetensors",
+      "strength_model": 1.0
+    }
+  },
+  "5": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "source-garden.png"
+    }
+  },
+  "6": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "inspiration-garden.png"
+    }
+  },
+  "7": {
+    "class_type": "ImageScaleToTotalPixels",
+    "inputs": {
+      "image": ["5", 0],
+      "upscale_method": "lanczos",
+      "megapixels": 1.0,
+      "resolution_steps": 1
+    }
+  },
+  "8": {
+    "class_type": "ImageScaleToTotalPixels",
+    "inputs": {
+      "image": ["6", 0],
+      "upscale_method": "lanczos",
+      "megapixels": 1.0,
+      "resolution_steps": 1
+    }
+  },
+  "9": {
+    "class_type": "GetImageSize",
+    "inputs": {
+      "image": ["7", 0]
+    }
+  },
+  "10": {
+    "class_type": "VAEEncode",
+    "inputs": {
+      "pixels": ["7", 0],
+      "vae": ["3", 0]
+    }
+  },
+  "11": {
+    "class_type": "VAEEncode",
+    "inputs": {
+      "pixels": ["8", 0],
+      "vae": ["3", 0]
+    }
+  },
+  "12": {
+    "class_type": "EmptySD3LatentImage",
+    "inputs": {
+      "width": ["9", 0],
+      "height": ["9", 1],
+      "batch_size": 1
+    }
+  },
+  "13": {
+    "class_type": "Krea2EditModelPatch",
+    "inputs": {
+      "model": ["4", 0],
+      "source_latent": ["10", 0],
+      "source_latent_b": ["11", 0],
+      "ref_boost": 0.75,
+      "ref_boost_a": 4.0,
+      "fit_mode": "fit",
+      "vae": ["3", 0],
+      "source_image": ["7", 0],
+      "source_image_b": ["8", 0],
+      "target_latent": ["12", 0]
+    }
+  },
+  "14": {
+    "class_type": "Krea2EditGroundedEncode",
+    "inputs": {
+      "clip": ["2", 0],
+      "prompt": "Edit image 1 as a realistic garden design visualization. Preserve image 1's exact camera viewpoint, portrait or landscape orientation, house, windows, fences, mature trees, lawn boundaries, paths, levels, perspective, lighting direction, and all hardscape. Do not replace or redesign the property. Enhance only the planting and flower-bed areas. Use image 2 only as weak inspiration for plant palette, layering, seasonal color, and flower-bed rhythm; do not copy its camera angle, house, geometry, or composition. Keep the result photographic, crisp and naturally detailed, with clean foliage edges and realistic materials. No stippling, grain, film noise, painterly texture, haze, or pointillism.",
+      "image": ["7", 0],
+      "image_b": ["8", 0],
+      "grounding_px": 640,
+      "system_prompt": ""
+    }
+  },
+  "15": {
+    "class_type": "Krea2EditGroundedEncode",
+    "inputs": {
+      "clip": ["2", 0],
+      "prompt": "",
+      "image": ["7", 0],
+      "image_b": ["8", 0],
+      "grounding_px": 640,
+      "system_prompt": ""
+    }
+  },
+  "16": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["13", 0],
+      "positive": ["14", 0],
+      "negative": ["15", 0],
+      "latent_image": ["12", 0],
+      "seed": 50602030,
+      "steps": 8,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1.0
+    }
+  },
+  "17": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["16", 0],
+      "vae": ["3", 0]
+    }
+  },
+  "18": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": ["17", 0],
+      "filename_prefix": "Garden_Source_Preserved_1MP"
+    }
+  }
+}

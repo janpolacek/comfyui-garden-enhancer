@@ -1,0 +1,23 @@
+# ComfyUI data and model files must never be committed.
+input/
+output/
+models/
+custom_nodes/
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.bin
+
+# Local images and generated media.
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.avif
+
+# Local environment files.
+.env
+.DS_Store
+__pycache__/
+*.pyc
